@@ -1,0 +1,253 @@
+:root {
+    --bg-main: #f4f7f9;
+    --bg-card: #ffffff;
+    --bg-overlay: #fcfdfe;
+    --border: #eef2f5;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --primary: #2563eb;
+    --primary-light: rgba(37, 99, 235, 0.1);
+    --grid-line: rgba(30, 41, 59, 0.05);
+}
+
+[data-theme="dark"] {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --bg-overlay: #1e293b;
+    --border: #334155;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --primary: #38bdf8;
+    --primary-light: rgba(56, 189, 248, 0.1);
+    --grid-line: rgba(255, 255, 255, 0.05);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-main);
+    margin: 0;
+    height: 100vh;
+    width: 100vw;
+}
+
+.app-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.main-app-header {
+    background: var(--bg-main);
+    padding: 24px;
+    /* Explicitly removed any shadow or borders */
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.main-app-header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: var(--text-primary);
+    text-align: left;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.main-app-header .theme-toggle {
+    margin-left: 20px;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    display: flex;
+    flex-grow: 1;
+    width: 100%;
+    background: transparent;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 360px;
+    padding: 24px;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    position: relative;
+}
+
+.instructions {
+    margin: 8px 0 16px 0;
+}
+
+.instructions p {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.input-group {
+    margin: 12px 0;
+}
+
+.theme-toggle {
+    cursor: pointer;
+    background: var(--primary-light);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.results-group {
+    margin: 16px 0;
+}
+
+label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.field-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+input[type="number"] {
+    width: 70px;
+    padding: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+input[type="range"] {
+    flex-grow: 1;
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+
+.results {
+    margin-top: auto;
+    padding-top: 20px;
+}
+
+.card {
+    padding: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.card span {
+    font-size: 0.75rem;
+    color: var(--text-primary);
+    font-weight: 700;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.card strong {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.highlight {
+    background: var(--primary-light);
+    border: 1px solid var(--primary);
+}
+
+.highlight strong {
+    color: var(--primary);
+}
+
+.chart-container {
+    flex-grow: 1;
+    padding: 40px;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+}
+
+#gmfmChart {
+    width: 100%;
+    height: 100% !important;
+}
+
+.reference-section {
+    margin-top: auto;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+}
+
+.reference-box {
+    padding: 12px;
+    background: var(--bg-card);
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.reference-box:hover {
+    border-style: solid;
+    border-color: var(--primary);
+}
+
+.reference-title {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.reference-link-text {
+    font-size: 0.85rem;
+    color: var(--primary);
+    text-decoration: none;
+    line-height: 1.4;
+    display: block;
+}
+
+.reference-link-text:hover {
+    text-decoration: underline;
+}
