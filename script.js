@@ -21,7 +21,7 @@ function calculate() {
     const intervalInput = document.getElementById('interval');
     const intervalSlider = document.getElementById('intervalSlider');
     const startScoreInput = document.getElementById('startScore');
-    const endScoreInput = document.getElementById('endScore');
+    const scoreChangeInput = document.getElementById('scoreChange');
 
     if (!startAgeInput || !startAgeSlider || !intervalInput || !intervalSlider) return;
 
@@ -50,19 +50,22 @@ function calculate() {
     const startAge = sAgeVal / 12;
     const startScore = parseFloat(startScoreInput.value) || 0;
     const interval = intVal / 12;
-    const endScoreActual = parseFloat(endScoreInput.value) || 0;
-
+    const scoreChange = parseFloat(scoreChangeInput.value) || 0;
+    
     const A = solveForA(startScore, startAge);
     const endAge = startAge + interval;
     const expectedEndScore = gmfmModel(endAge, A);
     const ENE = expectedEndScore - startScore;
-    const ratio = (endScoreActual - startScore) / ENE;
+    
+    // endScoreActual is for the chart line and ratio calculation
+    const endScoreActual = startScore + scoreChange;
+    const ratio = ENE !== 0 ? scoreChange / ENE : 0;
 
     document.getElementById('resExpected').innerText = expectedEndScore.toFixed(2);
     document.getElementById('resENE').innerText = ENE.toFixed(2);
     document.getElementById('resRatio').innerText = ratio.toFixed(2);
 
-    updateChart(A, startAge, endAge, endScoreActual);
+    updateChart(A, startAge, endAge, Math.max(0, Math.min(100, endScoreActual)));
 }
 
 function updateChart(A, startAge, endAge, endScoreActual) {
@@ -280,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSync('startAge', 'startAgeSlider');
     setupSync('startScore', 'startScoreSlider');
     setupSync('interval', 'intervalSlider');
-    setupSync('endScore', 'endScoreSlider');
+    setupSync('scoreChange', 'scoreChangeSlider');
     
     const themeBtn = document.getElementById('themeToggle');
     if (themeBtn) {
