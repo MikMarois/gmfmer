@@ -61,16 +61,21 @@ function calculate() {
     const endScoreActual = startScore + scoreChange;
     const ratio = ENE !== 0 ? scoreChange / ENE : 0;
 
+    // A_improved is the GMFM category the child reached at the end of the interval
+    const A_improved = solveForA(endScoreActual, endAge);
+
     document.getElementById('resExpected').innerText = expectedEndScore.toFixed(2);
     document.getElementById('resENE').innerText = ENE.toFixed(2);
     document.getElementById('resRatio').innerText = ratio.toFixed(2);
 
-    updateChart(A, startAge, endAge, Math.max(0, Math.min(100, endScoreActual)));
+    updateChart(A, A_improved, startAge, endAge, startScore, endScoreActual);
 }
 
-function updateChart(A, startAge, endAge, endScoreActual) {
-    const curveData = [];
-    const intervalShadeData = [];
+function updateChart(A, A_improved, startAge, endAge, startScore, endScoreActual) {
+    const expectedCurvePast = [];
+    const expectedCurveFuture = [];
+    const improvedCurveFuture = [];
+    const improvementShading = [];
     
     // Get theme colors
     const style = getComputedStyle(document.documentElement);
@@ -78,19 +83,37 @@ function updateChart(A, startAge, endAge, endScoreActual) {
     const gridCol = style.getPropertyValue('--grid-line').trim();
     const primaryCol = style.getPropertyValue('--primary').trim();
     const primaryLightCol = style.getPropertyValue('--primary-light').trim();
+    const greenCol = '#10b981';
+    const greenLightCol = 'rgba(16, 185, 129, 0.2)';
 
-    // Population of Curve Data
+    // Generate Expected Curve (Past & Future)
     for (let i = 0; i <= 15; i += 0.05) {
-        curveData.push({ x: i, y: gmfmModel(i, A) });
+        const y = gmfmModel(i, A);
+        if (i <= startAge) {
+            expectedCurvePast.push({ x: i, y: y });
+        } else {
+            // Include startAge as first point of future curve to avoid gap
+            if (expectedCurveFuture.length === 0) {
+                expectedCurveFuture.push({ x: startAge, y: gmfmModel(startAge, A) });
+            }
+            expectedCurveFuture.push({ x: i, y: y });
+        }
     }
 
-    // Population of Shading Data
-    const numShPoints = 60;
-    const shadeStep = (endAge - startAge) / numShPoints;
-    for (let j = 0; j <= numShPoints; j++) {
-        const xS = startAge + j * shadeStep;
-        intervalShadeData.push({ x: xS, y: gmfmModel(xS, A) });
+    // Generate Measured Projection (Future)
+    for (let i = endAge; i <= 15; i += 0.05) {
+        improvedCurveFuture.push({ x: i, y: gmfmModel(i, A_improved) });
     }
+
+    // Generate Shading Data (Polygon between growth curve and straight improvement line)
+    // Points along expected curve from startAge to endAge
+    for (let i = startAge; i <= endAge; i += 0.05) {
+        improvementShading.push({ x: i, y: gmfmModel(i, A) });
+    }
+    improvementShading.push({ x: endAge, y: gmfmModel(endAge, A) });
+    // Points for the straight line back to start
+    improvementShading.push({ x: endAge, y: endScoreActual });
+    improvementShading.push({ x: startAge, y: startScore });
 
     // Reference Curves (Categories I-V)
     const refValues = [{ label: 'I', a: 87.80 }, { label: 'II', a: 67.63 }, { label: 'III', a: 53.98 }, { label: 'IV', a: 40.39 }, { label: 'V', a: 22.80 }];
@@ -100,65 +123,86 @@ function updateChart(A, startAge, endAge, endScoreActual) {
         return {
             label: `Cat ${ref.label}`,
             data: data,
-            borderColor: 'rgba(245, 158, 11, 0.25)',
+            borderColor: 'rgba(245, 158, 11, 0.2)',
             borderWidth: 1.5,
             pointRadius: 0,
             fill: false,
             tension: 0.1,
-            order: 4
+            order: 5
         };
     });
 
     const datasets = [
         ...refDatasets,
         {
-            label: 'Interval Influence',
-            data: intervalShadeData,
-            backgroundColor: primaryLightCol,
+            label: 'Improvement Shading',
+            data: improvementShading,
+            backgroundColor: greenLightCol,
             borderColor: 'transparent',
-            fill: 'origin',
+            fill: true,
             pointRadius: 0,
+            tension: 0,
+            order: 4
+        },
+        {
+            label: 'Measured Projection',
+            data: improvedCurveFuture,
+            borderColor: greenCol,
+            borderWidth: 2,
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false,
             tension: 0.1,
             order: 3
         },
         {
-            label: 'Measured Level',
-            data: [{ x: 0, y: endScoreActual }, { x: 15, y: endScoreActual }],
-            borderColor: '#10b981',
-            borderWidth: 2,
-            borderDash: [6, 4],
+            label: 'Measured Improvement',
+            data: [{ x: startAge, y: startScore }, { x: endAge, y: endScoreActual }],
+            borderColor: greenCol,
+            borderWidth: 3,
             pointRadius: 0,
             fill: false,
             order: 2
         },
         {
-            label: 'Active Curve',
-            data: curveData,
+            label: 'Expected Future',
+            data: expectedCurveFuture,
             borderColor: primaryCol,
-            borderWidth: 3,
+            borderWidth: 2,
+            borderDash: [5, 5],
             pointRadius: 0,
             fill: false,
             tension: 0.1,
             order: 1
         },
         {
+            label: 'Expected Curve',
+            data: expectedCurvePast,
+            borderColor: primaryCol,
+            borderWidth: 3,
+            pointRadius: 0,
+            fill: false,
+            tension: 0.1,
+            order: 0
+        },
+        {
             label: 'Ref Points',
             data: [
-                { x: startAge, y: gmfmModel(startAge, A) },
-                { x: endAge, y: gmfmModel(endAge, A) }
+                { x: startAge, y: startScore },
+                { x: endAge, y: endScoreActual }
             ],
             backgroundColor: '#ef4444',
             borderColor: '#ffffff',
             borderWidth: 2,
             pointRadius: 7,
-            hoverRadius: 8, // Force it to stay large (or slightly larger) on hover
-            hitRadius: 12, // Larger hit area to make it easier to catch/drag
+            hoverRadius: 8,
+            hitRadius: 12,
             pointHoverBackgroundColor: '#ef4444',
             pointHoverBorderColor: '#ffffff',
             pointHoverBorderWidth: 2,
             type: 'scatter',
             showLine: false,
-            order: 0
+            order: -1
         }
     ];
 
@@ -212,26 +256,28 @@ function updateChart(A, startAge, endAge, endScoreActual) {
                             value.x = dragX;
                             value.y = snappedY;
                         } else {
-                            // End Point Drag
+                            // End Point Drag (on the Measured Improvement Line)
                             const sAgeVal = parseInt(startAgeInput.value) / 12;
+                            const startScoreVal = parseFloat(startScoreInput.value) || 0;
+                            
+                            // 1. Update Interval
                             const intMonths = Math.round((dragX - sAgeVal) * 12);
                             intervalInput.value = Math.max(1, Math.min(180, intMonths));
                             
-                            const finalAge = sAgeVal + (parseInt(intervalInput.value)/12);
-                            const solvedA = solveForA(dragY, finalAge);
-                            const snappedY = gmfmModel(finalAge, solvedA);
-                            
-                            const newStartScore = gmfmModel(sAgeVal, solvedA);
-                            startScoreInput.value = Math.max(0, Math.min(100, newStartScore)).toFixed(1);
+                            // 2. Update Score Change
+                            const scoreChangeInput = document.getElementById('scoreChange');
+                            const dragY = Math.max(0, Math.min(100, value.y));
+                            scoreChangeInput.value = (dragY - startScoreVal).toFixed(1);
 
-                            // Force visual dot to snap back
-                            value.x = finalAge;
-                            value.y = snappedY;
+                            // Force visual dot to snap (X only, Y follows drag)
+                            value.x = sAgeVal + (parseInt(intervalInput.value)/12);
                         }
 
                         // Sync Sliders
-                        ['startAge', 'startScore', 'interval'].forEach(id => {
-                            const val = document.getElementById(id).value;
+                        ['startAge', 'startScore', 'interval', 'scoreChange'].forEach(id => {
+                            const inputEle = document.getElementById(id);
+                            if (!inputEle) return;
+                            const val = inputEle.value;
                             const slider = document.getElementById(id + 'Slider');
                             if (slider) slider.value = val;
                         });
